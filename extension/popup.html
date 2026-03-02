@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MeetLite</title>
+  <style>
+    /* ── Reset & Base ─────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0d0d14;
+      --bg-card:   #13131f;
+      --bg-hover:  #1a1a2a;
+      --border:    rgba(255,255,255,0.07);
+      --signal:    #00ff9d;
+      --signal-dim:rgba(0,255,157,0.12);
+      --red:       #ff4444;
+      --red-dim:   rgba(255,68,68,0.12);
+      --yellow:    #ffcc44;
+      --blue:      #6699ff;
+      --purple:    #aa88ff;
+      --text:      #c8c8e0;
+      --text-dim:  #6b6b8a;
+      --text-bright: #e8e8f8;
+    }
+
+    body {
+      width: 380px;
+      min-height: 500px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-size: 13px;
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
+
+    /* ── Header ──────────────────────────────────── */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logo-icon {
+      width: 26px; height: 26px;
+      border-radius: 7px;
+      background: var(--signal-dim);
+      border: 1px solid rgba(0,255,157,0.25);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px;
+    }
+
+    .logo-text {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      color: var(--text-bright);
+      text-transform: uppercase;
+    }
+
+    /* ── Status bar ──────────────────────────────── */
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 10px 16px;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .status-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      background: var(--text-dim);
+      transition: background 0.3s;
+    }
+
+    .status-dot.recording { background: var(--red); animation: pulse 1.4s ease-in-out infinite; }
+    .status-dot.processing { background: var(--yellow); animation: pulse 1s ease-in-out infinite; }
+    .status-dot.done { background: var(--signal); }
+    .status-dot.error { background: var(--red); }
+
+    .status-text {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      flex: 1;
+    }
+
+    .status-text.recording { color: #ff8888; }
+    .status-text.processing { color: var(--yellow); }
+    .status-text.done { color: var(--signal); }
+
+    .timer {
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    /* ── Main content area ───────────────────────── */
+    .content {
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* ── Not on Meet warning ─────────────────────── */
+    .not-meet-notice {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      padding: 28px 16px;
+      text-align: center;
+      color: var(--text-dim);
+    }
+
+    .not-meet-notice .icon { font-size: 32px; }
+    .not-meet-notice p { font-size: 12px; line-height: 1.6; }
+    .not-meet-notice strong { color: var(--text); }
+
+    /* ── Big record button ───────────────────────── */
+    .btn-record {
+      width: 100%;
+      padding: 11px 16px;
+      border-radius: 10px;
+      border: 1px solid;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+      outline: none;
+    }
+
+    .btn-record.start {
+      background: var(--signal-dim);
+      border-color: rgba(0,255,157,0.4);
+      color: var(--signal);
+      box-shadow: 0 0 16px rgba(0,255,157,0.15);
+    }
+    .btn-record.start:hover {
+      background: rgba(0,255,157,0.18);
+      box-shadow: 0 0 24px rgba(0,255,157,0.25);
+    }
+
+    .btn-record.stop {
+      background: var(--red-dim);
+      border-color: rgba(255,68,68,0.4);
+      color: #ff8888;
+    }
+    .btn-record.stop:hover { background: rgba(255,68,68,0.18); }
+
+    .btn-record.disabled {
+      background: rgba(255,255,255,0.03);
+      border-color: var(--border);
+      color: var(--text-dim);
+      cursor: not-allowed;
+    }
+
+    .btn-icon { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .btn-icon.start { background: var(--signal); }
+    .btn-icon.stop  { background: var(--red); border-radius: 2px; }
+
+    /* ── Section headers ─────────────────────────── */
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+    }
+
+    .section-header .line {
+      flex: 1; height: 1px;
+      background: var(--border);
+    }
+
+    /* ── Transcript area ─────────────────────────── */
+    .transcript-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      max-height: 160px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: #2a2a3e transparent;
+    }
+
+    .transcript-box::-webkit-scrollbar { width: 3px; }
+    .transcript-box::-webkit-scrollbar-thumb { background: #2a2a3e; border-radius: 2px; }
+
+    .transcript-empty {
+      color: var(--text-dim);
+      font-size: 11px;
+      text-align: center;
+      padding: 12px 0;
+    }
+
+    .transcript-chunk {
+      border-left: 2px solid rgba(0,255,157,0.2);
+      padding: 4px 0 4px 8px;
+      margin-bottom: 8px;
+      font-size: 12px;
+      color: #aaaabb;
+      line-height: 1.6;
+      animation: fadeSlide 0.3s ease-out;
+    }
+
+    .transcript-chunk:last-child { margin-bottom: 0; }
+
+    .chunk-label {
+      font-size: 10px;
+      color: var(--text-dim);
+      font-family: 'Courier New', monospace;
+      margin-top: 2px;
+    }
+
+    /* ── Summary area ────────────────────────────── */
+    .summary-section { display: flex; flex-direction: column; gap: 8px; }
+
+    .summary-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+
+    .summary-card-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 7px;
+    }
+
+    .summary-card.key-points .summary-card-header { color: var(--signal); }
+    .summary-card.decisions  .summary-card-header { color: var(--blue); }
+    .summary-card.actions    .summary-card-header { color: var(--purple); }
+
+    .summary-card.key-points { border-color: rgba(0,255,157,0.1); }
+    .summary-card.decisions  { border-color: rgba(102,153,255,0.1); }
+    .summary-card.actions    { border-color: rgba(170,136,255,0.1); }
+
+    .summary-item {
+      display: flex;
+      gap: 6px;
+      font-size: 11.5px;
+      color: #aaaacc;
+      line-height: 1.55;
+      margin-bottom: 4px;
+    }
+    .summary-item:last-child { margin-bottom: 0; }
+    .summary-bullet { flex-shrink: 0; margin-top: 1px; opacity: 0.5; }
+
+    /* ── Copy / new meeting buttons ──────────────── */
+    .btn-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-sm {
+      flex: 1;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      color: var(--text-dim);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+    .btn-sm:hover { background: var(--bg-hover); color: var(--text); border-color: rgba(255,255,255,0.12); }
+
+    /* ── Error banner ────────────────────────────── */
+    .error-banner {
+      background: var(--red-dim);
+      border: 1px solid rgba(255,68,68,0.2);
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-size: 11.5px;
+      color: #ff9999;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    /* ── Processing indicator ────────────────────── */
+    .processing-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      background: rgba(255,204,68,0.06);
+      border: 1px solid rgba(255,204,68,0.12);
+      border-radius: 8px;
+      font-size: 11.5px;
+      color: var(--yellow);
+    }
+
+    .spinner {
+      width: 13px; height: 13px;
+      border: 2px solid rgba(255,204,68,0.2);
+      border-top-color: var(--yellow);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      flex-shrink: 0;
+    }
+
+    /* ── Animations ──────────────────────────────── */
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(255,68,68,0.5); }
+      50%       { box-shadow: 0 0 0 5px rgba(255,68,68,0); }
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateY(5px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Scrollbar ───────────────────────────────── */
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #2a2a3e; border-radius: 2px; }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">
+      <div class="logo-icon">◉</div>
+      <span class="logo-text">MeetLite</span>
+    </div>
+    <span style="font-size:11px; color: var(--text-dim);">AI Meeting Transcriber</span>
+  </div>
+
+  <!-- Status bar -->
+  <div class="status-bar">
+    <div class="status-dot" id="statusDot"></div>
+    <span class="status-text" id="statusText">Ready</span>
+    <span class="timer" id="timer"></span>
+  </div>
+
+  <!-- Main content (rendered by popup.js) -->
+  <div class="content" id="content">
+    <!-- Dynamic content injected here -->
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

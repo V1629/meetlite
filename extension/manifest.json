@@ -1,0 +1,48 @@
+{
+  "manifest_version": 3,
+  "name": "MeetLite – AI Meeting Transcriber",
+  "version": "1.2.0",
+  "description": "Captures Google Meet audio (all participants), transcribes with Gemini AI, generates a structured meeting summary.",
+
+  "permissions": [
+    "tabCapture",
+    "tabs",
+    "activeTab",
+    "offscreen",
+    "storage",
+    "alarms"
+  ],
+
+  "host_permissions": [
+    "https://meet.google.com/*",
+    "http://localhost:8000/*",
+    "https://*/*"
+  ],
+
+  "background": {
+    "service_worker": "background.js"
+  },
+
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16":  "icons/icon16.png",
+      "48":  "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+
+  "icons": {
+    "16":  "icons/icon16.png",
+    "48":  "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["https://meet.google.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

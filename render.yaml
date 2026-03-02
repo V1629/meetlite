@@ -1,0 +1,52 @@
+# render.yaml – Render Infrastructure-as-Code Blueprint
+# Deploy with: Dashboard → New → Blueprint → connect this repo
+#
+# This creates:
+#   1. FastAPI backend   (Web Service – Docker)
+#   2. Next.js frontend  (Web Service – Docker)
+#   3. PostgreSQL database (managed by Render)
+#
+# After deploy, set your secret env vars in the Render dashboard:
+#   OPENAI_API_KEY, HF_TOKEN
+
+databases:
+  - name: meetlite-db
+    plan: free            # free tier: 1 GB, 90-day expiry (upgrade for prod)
+    databaseName: meetlite
+    user: meetlite
+
+services:
+  # ── FastAPI Backend ───────────────────────────────────────────────────────
+  - type: web
+    name: meetlite-backend
+    runtime: docker
+    plan: free
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /health
+    envVars:
+      # Automatically injected by Render from the managed database above
+      - key: DATABASE_URL
+        fromDatabase:
+          name: meetlite-db
+          property: connectionString
+      # Secrets — set these manually in the Render dashboard
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: HF_TOKEN
+        sync: false
+      # Allow the frontend origin (update after first deploy with actual URL)
+      - key: ALLOWED_ORIGINS
+        value: https://meetlite-frontend.onrender.com
+
+  # ── Next.js Frontend ─────────────────────────────────────────────────────
+  - type: web
+    name: meetlite-frontend
+    runtime: docker
+    plan: free
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    envVars:
+      # Baked into the Next.js build so client-side fetch works
+      - key: NEXT_PUBLIC_API_URL
+        value: https://meetlite-backend.onrender.com

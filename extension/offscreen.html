@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>MeetLite Offscreen</title></head>
+<body>
+<!--
+  offscreen.html – Hidden DOM context for MediaRecorder.
+  Chrome MV3 service workers cannot use MediaRecorder (no DOM).
+  This page is created invisibly by the background script and handles:
+    - Receiving the tab capture stream ID
+    - Creating a MediaRecorder on the stream
+    - Slicing audio into chunks every 60s
+    - Sending chunks back to background.js as ArrayBuffers
+-->
+<script src="offscreen.js"></script>
+</body>
+</html>
