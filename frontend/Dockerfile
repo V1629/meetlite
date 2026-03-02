@@ -4,7 +4,7 @@ FROM node:18-alpine AS base
 FROM base AS deps
 WORKDIR /app
 COPY package.json package-lock.json* ./
-RUN npm ci
+RUN npm install --production=false
 
 # ── Build ───────────────────────────────────────────────────────
 FROM base AS builder
@@ -22,16 +22,20 @@ FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
+# Next.js standalone must listen on 0.0.0.0, not 127.0.0.1
+ENV HOSTNAME="0.0.0.0"
+ENV PORT=3000
+
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Copy public folder only if it exists (use wildcard trick)
-COPY --from=builder /app/public* ./public/
+# Create public dir (may be empty but must exist)
+RUN mkdir -p ./public
 
+# Copy standalone server + static assets
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 USER nextjs
 EXPOSE 3000
-ENV PORT=3000
 CMD ["node", "server.js"]
