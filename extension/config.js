@@ -7,5 +7,5 @@
 'use strict';
 
 const CONFIG = {
-  API_BASE: 'http://localhost:8000',
+  API_BASE: 'https://meetlite-backend.onrender.com',
 };
