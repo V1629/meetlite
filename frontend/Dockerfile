@@ -12,7 +12,10 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-ARG NEXT_PUBLIC_API_URL
+# NEXT_PUBLIC_* vars are baked in at build time.
+# Render passes env vars as Docker build args automatically.
+# Provide a default so it works even if not explicitly set.
+ARG NEXT_PUBLIC_API_URL=https://meetlite-backend.onrender.com
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
 RUN npm run build
