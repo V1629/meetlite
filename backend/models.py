@@ -19,8 +19,9 @@ class Meeting(Base):
     id         = Column(String,   primary_key=True, default=generate_uuid, index=True)
     title      = Column(String,   default="Untitled Meeting", nullable=False)
     created_at = Column(
-        DateTime(timezone=True),      # IMPORTANT
-        server_default=func.now(),    # Let PostgreSQL handle it
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),   # Python-side fallback
+        server_default=func.now(),                     # PostgreSQL-side
         nullable=False
     )
     transcript = Column(Text,     default="", nullable=False)

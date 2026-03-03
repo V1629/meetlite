@@ -38,7 +38,13 @@ load_dotenv()  # Must be called before any env-dependent code
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    database.Base.metadata.create_all(bind=database.engine)
+    print(f"[startup] DATABASE_URL = {database.DATABASE_URL[:25]}...")
+    try:
+        database.Base.metadata.create_all(bind=database.engine)
+        print("[startup] Database tables created successfully.")
+    except Exception as exc:
+        print(f"[startup] ERROR creating tables: {exc}")
+        raise
     yield
 
 
