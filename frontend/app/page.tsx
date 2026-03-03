@@ -12,9 +12,10 @@ import { listMeetings, deleteMeeting, MeetingListItem } from "@/services/api";
 
 function formatDate(iso: string): string {
   const d = new Date(iso);
-  return d.toLocaleDateString("en-US", {
+  return d.toLocaleDateString("en-IN", {
     month: "short", day: "numeric", year: "numeric",
     hour: "2-digit", minute: "2-digit",
+    timeZone: "Asia/Kolkata",
   });
 }
 

@@ -6,6 +6,7 @@ import uuid
 from datetime import datetime, timezone
 from sqlalchemy import Column, String, Text, DateTime
 from database import Base
+from sqlalchemy.sql import func
 
 
 def generate_uuid():
@@ -17,6 +18,10 @@ class Meeting(Base):
 
     id         = Column(String,   primary_key=True, default=generate_uuid, index=True)
     title      = Column(String,   default="Untitled Meeting", nullable=False)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    created_at = Column(
+        DateTime(timezone=True),      # IMPORTANT
+        server_default=func.now(),    # Let PostgreSQL handle it
+        nullable=False
+    )
     transcript = Column(Text,     default="", nullable=False)
     summary    = Column(Text,     default=None, nullable=True)

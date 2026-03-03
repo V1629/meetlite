@@ -128,9 +128,10 @@ function CopyButton({ text, label }: { text: string; label: string }) {
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-US", {
+  return new Date(iso).toLocaleDateString("en-IN", {
     weekday: "short", month: "short", day: "numeric",
     year: "numeric", hour: "2-digit", minute: "2-digit",
+    timeZone: "Asia/Kolkata",
   });
 }
 
